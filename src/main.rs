@@ -10,6 +10,9 @@
 //! 改成真的 IM 时：把这些换成和你的平台说话、把平台的格式翻成协议的统一格式；聊天记录、凭据、配置都交给 HHH，
 //! 插件自己不存（见 AGENTS.md）。
 
+// Windows：按窗口程序编，桌面宿主拉起时不弹控制台窗口；标准输入输出照样走宿主接好的管道。
+#![cfg_attr(windows, windows_subsystem = "windows")]
+
 use std::io::{BufRead, Write};
 
 use hhh_im_protocol::types::{Block, Conversation, ConversationKind, Event, Message, SendOutcome, Sender, SenderKind};

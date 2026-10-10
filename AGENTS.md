@@ -22,6 +22,8 @@
 - 用户要填的参数在 `settings` 里声明，HHH 生成表单、保存、在 `session/open` 的 `settings` 里给你。
 - 临时文件只放 `initialize` 给的 `tempDir`（随时可能被清空）。
 
+Windows 上程序按窗口程序编（`src/main.rs` 开头的 `windows_subsystem`），HHH 拉起时不弹控制台窗口；标准输入输出照样能用，不要删。
+
 ## 协议表达不了时
 
 提给协议（在 [hhh-im-sdk](https://github.com/MagicLizi/hhh-im-sdk/issues) 提 issue，写清楚要什么、为什么所有 IM 都可能需要），
