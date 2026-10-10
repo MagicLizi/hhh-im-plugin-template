@@ -4,7 +4,7 @@
 //! 不要往标准输出打别的东西。这个示例：
 //! - `initialize`：报协议版本、插件信息、平台说明与能力（只推一次的平台：`history = none`，消息全靠推送）；
 //! - `session/open`：不用登录，直接在线，账号是“示例账号”；在线后推一个“示例群”和一条欢迎消息；
-//! - `messages/send`：你在 HHH 里发的消息照收，再以“示例机器人”回一句“收到：…”；
+//! - `messages/send`：你在 HHH 里发的消息照收，再以“示例机器人”引用原话回一句“收到「…」”；
 //! - 别的方法回“不支持”。
 //!
 //! 改成真的 IM 时：把这些换成和你的平台说话、把平台的格式翻成协议的统一格式；聊天记录、凭据、配置都交给 HHH，
@@ -137,7 +137,7 @@ impl Plugin {
                     .unwrap_or("")
                     .to_owned();
                 let sent = text_message(format!("sent-{}", now_ms()), ME, "示例账号", SenderKind::User, &text);
-                let reply = text_message(format!("reply-{}", now_ms()), BOT, "示例机器人", SenderKind::Bot, &format!("收到：{text}"));
+                let reply = text_message(format!("reply-{}", now_ms()), BOT, "示例机器人", SenderKind::Bot, &format!("收到「{text}」"));
                 self.push(vec![Event::Messages {
                     conversation_id: DEMO_CHAT.into(),
                     messages: vec![reply],

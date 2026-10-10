@@ -23,7 +23,7 @@ HHH 的 IM 层只做统一的界面和一个统一的插座（HHH-IM-Protocol）
    hhh-im-check dist/stage/hhh-im-provider.json
    ```
 
-5. 在 HHH 里试：设置 → IM → 添加 IM → 文件夹，选 `dist/stage`。会多一个“示例 IM”，里面一个示例群，发什么它回“收到：…”。
+5. 在 HHH 里试：设置 → IM → 添加 IM → 文件夹，选 `dist/stage`。会多一个“示例 IM”，里面一个示例群，发什么它回“收到「…」”。
 
 然后照 `src/main.rs` 的注释和 `AGENTS.md` 换成你的平台。
 
