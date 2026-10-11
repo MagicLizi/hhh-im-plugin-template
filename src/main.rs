@@ -60,6 +60,7 @@ fn text_message(id: String, from: &str, name: &str, kind: SenderKind, text: &str
         conversation_id: DEMO_CHAT.into(),
         sender: Sender {
             id: from.into(),
+            id_type: None,
             kind,
             name: Some(name.into()),
         },
@@ -72,6 +73,7 @@ fn text_message(id: String, from: &str, name: &str, kind: SenderKind, text: &str
         reply_to: None,
         thread: None,
         reactions: None,
+        edit_draft: None,
         raw: None,
     }
 }

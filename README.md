@@ -11,7 +11,7 @@ HHH 的 IM 层只做统一的界面和一个统一的插座（HHH-IM-Protocol）
 2. 装工具（自检与打包）：
 
    ```sh
-   cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.1.0 hhh-im-protocol --features transport,package
+   cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.2.0 hhh-im-protocol --features transport,package
    ```
 
 3. 改清单 `hhh-im-provider.json`：`id`（发布后不能改）、`name`、`publisher`、`source`（换成你的仓库）。
