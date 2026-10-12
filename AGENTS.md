@@ -5,9 +5,23 @@
 ## 先读
 
 1. 协议：[hhh-im-sdk/docs/protocol-v1.md](https://github.com/MagicLizi/hhh-im-sdk/blob/main/docs/protocol-v1.md)。每个方法的参数与结果都以它为准，
-   Rust 类型在 `hhh-im-protocol`（`types`、`method`、`platform` 模块）。
+   Rust 类型在 `hhh-im-protocol`（`types`、`method`、`platform`、`content` 模块）。
 2. 发版本规范：[hhh-im-sdk/docs/release.md](https://github.com/MagicLizi/hhh-im-sdk/blob/main/docs/release.md)。
 3. 本仓库的 `src/main.rs`：最小可用的骨架（不用登录、一个示例群、发什么回什么），从它改起。
+
+## 每个插件都要的那一半，用运行时
+
+协议包的插件运行时（`hhh-im-protocol` 的 `runtime` 部件，`hhh_im_protocol::runtime`）管和平台无关的事，插件不要自己写，
+也不要从别的插件抄：
+
+- **协议服务**：`serve_on` / `serve_stdio` 读写标准输入输出，宿主的每个请求各开一个任务并发处理（查询不被下载、登录堵住），
+  回复与推送排进同一条队列按顺序写；`$/cancel` 停掉对应的请求。插件实现 `Plugin`：收到某个方法怎么办。
+- **向宿主发请求并等回复**：`Host::request`（`credential/save`、`events/push` 先存后用都靠它）；通知用 `Host::notify`。
+- **日志**：`install_log` 之后 tracing 的日志转成 `log/write` 交给 HHH；标准输出不写别的东西。
+- **资源分段**：`Segments::read` 管 `resources/read`、`avatars/read` 一段一段地读（顺着读复用同一条读流）；插件只提供“从某个位置
+  打开一条读流”。整份在内存里的小东西用 `chunk_of_bytes`。
+- **上传**：`Uploads` 管 `uploads/begin`、`chunk`、`finish` 攒齐、核对长度与 SHA-256；插件只把整份交给平台。
+- **请求计数**：向平台发请求的出口每次调一下 `metering::request()`，运行时随结果报给 HHH（`platformRequests`）。
 
 ## 插件只做三件事
 
@@ -48,7 +62,7 @@ Windows 上程序按窗口程序编（`src/main.rs` 开头的 `windows_subsystem
 ## 改完必须
 
 1. `cargo build --release` 通过。
-2. 跑自检：`hhh-im-check <插件文件夹>/hhh-im-provider.json`，全部通过（没装：`cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.2.0 hhh-im-protocol --features transport,package`）。
+2. 跑自检：`hhh-im-check <插件文件夹>/hhh-im-provider.json`，全部通过（没装：`cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.4.0 hhh-im-protocol --features transport,package`）。
    开发时清单可以指向 `target/release` 里的程序，或先跑 `scripts/pack` 用 `dist/stage`。
 3. 在 HHH 里试一遍：设置 → IM → 添加 IM → 文件夹，选 `dist/stage`（或你的插件文件夹），登录、收发消息都走一遍。
 
