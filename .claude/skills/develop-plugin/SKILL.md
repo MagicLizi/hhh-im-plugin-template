@@ -11,7 +11,7 @@ description: 从这个模板起一个新的 HHH IM 插件，或给插件加功�
 ## 起一个新 IM
 
 1. 改清单 `hhh-im-provider.json`：`id`（发布后不能改，想清楚）、`name`、`version: 0.1.0`、`logo`、`publisher`、`source`（你的仓库）。
-2. 改 `Cargo.toml` 的包名与 `src/main.rs` 里 `initialize` 的 `provider`，与清单一致；`scripts/pack.*` 里的程序名一起改。
+2. 改 `Cargo.toml` 的包名与 `src/main.rs` 里 `initialize` 的 `provider`，与清单一致；`scripts/pack.*`、`scripts/pack-ios.*` 里的程序名一起改。
 3. 换掉 `src/main.rs` 里 `Plugin::request` 的示例逻辑（运行时的接法不动）：
    - `initialize`：如实写 `platform`（`history`：平台能按时间读历史写 `server`，只能收推送写 `none`）与 `capabilities`。
    - `session/open`：有凭据就连平台、核验账号、回 `online`；没有或失效回 `needsLogin`，HHH 随后调 `login/start`。
@@ -25,7 +25,8 @@ description: 从这个模板起一个新的 HHH IM 插件，或给插件加功�
 ## 每次改完
 
 1. `cargo build --release`。
-2. `scripts/pack`（Windows：`powershell -File scripts/pack.ps1`），再 `hhh-im-check dist/stage/hhh-im-provider.json`，全部通过。
+2. `scripts/pack`（Windows：`powershell -File scripts/pack.ps1`），再 `hhh-im-check dist/stage/hhh-im-provider.json`，全部通过；
+   出 iPhone / iPad 包的插件再跑 `scripts/pack-ios.sh`（编得过 `wasm32-wasip2`）。
 3. HHH：设置 → IM → 添加 IM → 文件夹，选 `dist/stage`；已经装过就在卡片「管理 → 从文件更新」选它。登录、收、发都试一遍。
 
 ## 不要
