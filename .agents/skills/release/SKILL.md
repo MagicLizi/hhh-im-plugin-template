@@ -15,7 +15,8 @@ description: 给这个 HHH IM 插件发一个新版本：改版本号、打包�
 5. 发布：令牌放环境变量 `HHH_IM_PUBLISH_TOKEN`（GitHub 写 Contents 权限；GitLab 带 `api` 的个人访问令牌），不写进任何文件、不贴进对话：
    - Windows：`powershell -File scripts/pack.ps1 -Publish`
    - macOS / Linux：`scripts/pack.sh --publish`
-   要出几个系统的包就在几台电脑上各跑一次；同一版本的索引会合并。
+   要出几个系统的包就在几台电脑上各跑一次；iPhone / iPad 的包在任一台上跑 `scripts/pack-ios.sh --publish`（Windows：
+   `powershell -File scripts/pack-ios.ps1 -Publish`）。同一版本的索引会合并。
 6. 核对：Release 上有每个目标的 `.hhhim` 与 `hhhim-release.json`；在 HHH 里打开设置 → IM，卡片写“有新版本 x.y.z”，点更新能装上。
 
 标签与清单版本对不上、版本没往上加时打包工具会拒绝，照它说的改，不要绕过。

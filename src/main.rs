@@ -1,6 +1,7 @@
 //! 示例 IM：HHH IM 插件的最小可用骨架（HHH-IM-Protocol v1，规范见 hhh-im-sdk 的 docs/protocol-v1.md）。
 //!
-//! 插件是一个子进程：HHH 从标准输入一行一条发 JSON-RPC 请求，插件从标准输出一行一条回。和平台无关、每个插件都要的
+//! 插件是一个子进程（iPhone / iPad 上是 HHH 在 App 里跑的 WASM 组件，代码不用改）：HHH 从标准输入一行一条发 JSON-RPC
+//! 请求，插件从标准输出一行一条回。和平台无关、每个插件都要的
 //! 那一半交给协议包的插件运行时（`hhh_im_protocol::runtime`）：读写标准输入输出、宿主的请求各开一个任务并发处理、
 //! `$/cancel`、向宿主发请求并等回复、tracing 日志转成 `log/write`、资源分段读、上传攒齐与核对、平台请求计数。插件
 //! 只写“收到某个方法怎么办”。这个示例：
@@ -185,6 +186,7 @@ fn main() {
             host: host.clone(),
             batches: AtomicU64::new(0),
         });
-        runtime::serve_on(demo, host, writes, tokio::io::stdin(), tokio::io::stdout()).await;
+        // 标准输入输出由运行时按目标接好（WASM 包上走 WASI 的接口）。
+        runtime::serve_stdio_on(demo, host, writes).await;
     });
 }

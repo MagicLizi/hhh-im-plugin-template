@@ -38,6 +38,11 @@
 
 Windows 上程序按窗口程序编（`src/main.rs` 开头的 `windows_subsystem`），HHH 拉起时不弹控制台窗口；标准输入输出照样能用，不要删。
 
+iPhone / iPad 上 HHH 在 App 里跑插件的 WASM 组件（`wasm32-wasip2`，`scripts/pack-ios.*` 打包）：标准输入输出由运行时接好
+（用 `serve_stdio_on` / `serve_stdio`，不要自己拿 `tokio::io::stdin()`）；插件只看得见 `tempDir`（也是它的当前目录），
+网络能用 TCP 与域名解析，不能起子进程、不能开线程（tokio 用单线程运行时）。用到 tokio 的网络、文件时编 WASM 包要带
+`RUSTFLAGS="--cfg tokio_unstable"`；依赖里有 C 代码的要装 wasi-sdk。
+
 ## 协议表达不了时
 
 提给协议（在 [hhh-im-sdk](https://github.com/MagicLizi/hhh-im-sdk/issues) 提 issue，写清楚要什么、为什么所有 IM 都可能需要），
@@ -50,9 +55,9 @@ Windows 上程序按窗口程序编（`src/main.rs` 开头的 `windows_subsystem
 | `id` | 插件编号：小写字母开头，只含 `a-z0-9-`，2–32 字符。**发布后不能改**（HHH 靠它认同一个插件，改了聊天记录不跟过去） |
 | `name` | 给用户看的名字 |
 | `version` | `主.次.修订`，每次发版本往上加 |
-| `command` | 程序相对清单的路径；不写扩展名，打 Windows 包时自动指向 `.exe` |
+| `command` | 程序相对清单的路径；不写扩展名，打 Windows 包时自动指向 `.exe`，打 iPhone / iPad 包时指向 `.wasm` |
 | `args` | 启动参数（可选） |
-| `os` | 支持的系统：`windows` / `macos` / `linux` |
+| `os` | 支持的系统：`windows` / `macos` / `linux` / `ios`（iPhone / iPad，WASM 包） |
 | `logo` | 标志文件（svg / png / jpg / webp，96 KB 以内） |
 | `publisher`、`homepage` | 发布者、主页 |
 | `imType` | 和别的插件是同一种 IM 时写成同一个值（同一种同一时间只用一个）；不写自成一类 |
@@ -61,8 +66,8 @@ Windows 上程序按窗口程序编（`src/main.rs` 开头的 `windows_subsystem
 
 ## 改完必须
 
-1. `cargo build --release` 通过。
-2. 跑自检：`hhh-im-check <插件文件夹>/hhh-im-provider.json`，全部通过（没装：`cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.4.0 hhh-im-protocol --features transport,package`）。
+1. `cargo build --release` 通过；出 iPhone / iPad 包的插件 `cargo build --release --target wasm32-wasip2` 也通过。
+2. 跑自检：`hhh-im-check <插件文件夹>/hhh-im-provider.json`，全部通过（没装：`cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.6.0 hhh-im-protocol --features transport,package`）。
    开发时清单可以指向 `target/release` 里的程序，或先跑 `scripts/pack` 用 `dist/stage`。
 3. 在 HHH 里试一遍：设置 → IM → 添加 IM → 文件夹，选 `dist/stage`（或你的插件文件夹），登录、收发消息都走一遍。
 

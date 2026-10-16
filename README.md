@@ -11,7 +11,7 @@ HHH 的 IM 层只做统一的界面和一个统一的插座（HHH-IM-Protocol）
 2. 装工具（自检与打包）：
 
    ```sh
-   cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.4.0 hhh-im-protocol --features transport,package
+   cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.6.0 hhh-im-protocol --features transport,package
    ```
 
 3. 改清单 `hhh-im-provider.json`：`id`（发布后不能改）、`name`、`publisher`、`source`（换成你的仓库）。
@@ -24,6 +24,19 @@ HHH 的 IM 层只做统一的界面和一个统一的插座（HHH-IM-Protocol）
    ```
 
 5. 在 HHH 里试：设置 → IM → 添加 IM → 文件夹，选 `dist/stage`。会多一个“示例 IM”，里面一个示例群，发什么它回“收到「…」”。
+
+## iPhone / iPad 的包
+
+iOS 不能运行下载来的原生程序，HHH 的 iOS 版在 App 里跑插件的 WASM 组件（`wasm32-wasip2`）。同一份代码多编一个包，插件代码不用改：
+
+```sh
+rustup target add wasm32-wasip2      # 第一次
+scripts/pack-ios.sh                  # macOS / Linux
+powershell -File scripts/pack-ios.ps1   # Windows
+```
+
+出来的是 `dist/` 里的 `demo-im-<版本>-wasm32-wasip2.hhhim`，和桌面包写进同一份版本索引。用到 tokio 的网络、文件的插件编 WASM 包时要带
+`RUSTFLAGS="--cfg tokio_unstable"`；依赖里有 C 代码（如 `ring`）的要装 [wasi-sdk](https://github.com/WebAssembly/wasi-sdk) 并设 `CC_wasm32_wasip2`。
 
 然后照 `src/main.rs` 的注释和 `AGENTS.md` 换成你的平台。
 
@@ -40,7 +53,8 @@ HHH 的 IM 层只做统一的界面和一个统一的插座（HHH-IM-Protocol）
 
 1. 改清单与 `Cargo.toml` 的 `version`，写 `notes.md`（更新说明，Markdown）。
 2. 提交，打标签 `v<版本>` 推上去。
-3. 令牌放环境变量 `HHH_IM_PUBLISH_TOKEN`，跑 `scripts/pack.ps1 -Publish`（或 `scripts/pack.sh --publish`）。
+3. 令牌放环境变量 `HHH_IM_PUBLISH_TOKEN`，跑 `scripts/pack.ps1 -Publish`（或 `scripts/pack.sh --publish`）；iPhone / iPad 的包再跑一次
+   `scripts/pack-ios.sh --publish`（或 `pack-ios.ps1 -Publish`），同一版本的索引会合并。
 
 用户打开 HHH 的设置 → IM 时会看到“有新版本”，点一下就更新。详细规矩见 [hhh-im-sdk 的发版本规范](https://github.com/MagicLizi/hhh-im-sdk/blob/main/docs/release.md)。
 
