@@ -92,8 +92,8 @@ dependencies = [
 
 [[package]]
 name = "hhh-im-protocol"
-version = "0.6.0"
-source = "git+https://github.com/MagicLizi/hhh-im-sdk?tag=v0.6.0#a532ccd8130aa632b64661acd21333a1ccddc66c"
+version = "0.6.1"
+source = "git+https://github.com/MagicLizi/hhh-im-sdk?tag=v0.6.1#a0c02f4683ea91bee2c787b95320e0a6c8dadfa5"
 dependencies = [
  "base64",
  "serde",
