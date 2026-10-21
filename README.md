@@ -47,6 +47,7 @@ powershell -File scripts/pack-ios.ps1   # Windows
 | 添加 IM → 文件夹 | 开发时：选 `dist/stage` 或你的插件文件夹 |
 | 添加 IM → 安装包 | 选 `dist/` 里的 `.hhhim`，和用户装的一样 |
 | 添加 IM → 仓库 | 发布后：填你的仓库地址，HHH 读最新版本、下载这台电脑的包 |
+| 添加 IM → 分享码 | 在支持分享码的 HHH 中，粘贴拥有者提供的分享码，安装和更新私有插件 |
 | 卡片「管理 → 从文件更新」 | 已经装过，换成新打的包或文件夹 |
 
 ## 发版本
@@ -57,6 +58,15 @@ powershell -File scripts/pack-ios.ps1   # Windows
    `scripts/pack-ios.sh --publish`（或 `pack-ios.ps1 -Publish`），同一版本的索引会合并。
 
 用户打开 HHH 的设置 → IM 时会看到“有新版本”，点一下就更新。详细规矩见 [hhh-im-sdk 的发版本规范](https://github.com/MagicLizi/hhh-im-sdk/blob/main/docs/release.md)。
+
+### 分享私有插件
+
+拥有者在支持分享码的 HHH 中点「管理 → 分享…」生成分享码，朋友粘贴安装后照常更新。删除分享码后，朋友下次检查显示「分享已被取消」，已装的插件仍可使用。
+
+- GitHub：单独建一个只放安装包与版本索引的发布仓库，清单 `source` 指向它；分享用的细粒度令牌只选这一个仓库、Contents 只读。HHH 会引导生成，不能把发布令牌发给朋友。
+- GitLab：新版打包工具发布时同时更新包仓库的最新版本索引，HHH 创建只读包仓库的部署令牌。旧工具发布的版本可用 `hhh-im-pack dist/stage --publish --latest-only` 只补索引，`dist/stage` 的清单版本必须与已发布版本相同。
+
+本页的 `--latest-only` 需要包含该选项的新版打包工具；上面的固定 SDK 版本不会自动升级。使用已核对的新版本工具后，再按发版本规范发布。
 
 ## 给 agent 的规范
 
