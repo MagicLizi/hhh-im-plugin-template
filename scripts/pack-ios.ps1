@@ -3,7 +3,7 @@
 # 用法：powershell -File scripts/pack-ios.ps1 [-Publish]
 #   -Publish：打好后发到清单 source 写的仓库；令牌放环境变量 HHH_IM_PUBLISH_TOKEN（或 GITHUB_TOKEN / GITLAB_TOKEN），不写进任何文件。
 # 第一次先装目标：rustup target add wasm32-wasip2。用到 tokio 的网络、文件的插件要设 RUSTFLAGS="--cfg tokio_unstable"。
-# hhh-im-pack 没装时：cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.6.1 hhh-im-protocol --features transport,package
+# hhh-im-pack 没装时：cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.10.0 hhh-im-protocol --features transport,package
 param([switch]$Publish)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot

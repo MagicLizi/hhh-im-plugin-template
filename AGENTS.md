@@ -67,11 +67,12 @@ iPhone / iPad 上 HHH 在 App 里跑插件的 WASM 组件（`wasm32-wasip2`，`s
 ## 改完必须
 
 1. `cargo build --release` 通过；出 iPhone / iPad 包的插件 `cargo build --release --target wasm32-wasip2` 也通过。
-2. 跑自检：`hhh-im-check <插件文件夹>/hhh-im-provider.json`，全部通过（没装：`cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.6.1 hhh-im-protocol --features transport,package`）。
+2. 跑自检：`hhh-im-check <插件文件夹>/hhh-im-provider.json`，全部通过（没装：`cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.10.0 hhh-im-protocol --features transport,package`）。
    开发时清单可以指向 `target/release` 里的程序，或先跑 `scripts/pack` 用 `dist/stage`。
 3. 在 HHH 里试一遍：设置 → IM → 添加 IM → 文件夹，选 `dist/stage`（或你的插件文件夹），登录、收发消息都走一遍。
+4. PR 上的 `hhh-plugin` 检查全部通过（要出的系统都会编一遍）。
 
 ## 发版本
 
-只按发版本规范：改 `version` → 打标签 `v<版本>` 推上去 → `scripts/pack` 带上 `--publish`（`pack.ps1 -Publish`）。
-令牌只放环境变量，不写进任何文件，也不要贴进对话或提交。用「发版本」skill。
+用「发版本」skill：改 `version`、在 `notes.md` 写一节 `### <版本>` → 合进 main → Actions 运行 `hhh-plugin`（填发布请求编号）建草稿 → 核对后在 Releases 页发布。不用 CI 时按发版本规范在自己电脑上 `scripts/pack` 带 `--publish`。
+令牌只放环境变量，不写进任何文件，也不要贴进对话或提交。`.github/workflows/hhh-plugin.yml` 与 `.github/hhh-ci/` 是统一工作流，不在这里改；要出哪些系统改 `.github/hhh-plugin.json`。
