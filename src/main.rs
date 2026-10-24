@@ -66,6 +66,7 @@ fn text_message(id: String, from: &str, name: &str, kind: SenderKind, text: &str
         thread: None,
         reactions: None,
         edit_draft: None,
+        agent_attribution: None,
         raw: None,
     }
 }

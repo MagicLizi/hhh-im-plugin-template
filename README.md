@@ -11,7 +11,7 @@ HHH 的 IM 层只做统一的界面和一个统一的插座（HHH-IM-Protocol）
 2. 装工具（自检与打包）：
 
    ```sh
-   cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.6.1 hhh-im-protocol --features transport,package
+   cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.10.0 hhh-im-protocol --features transport,package
    ```
 
 3. 改清单 `hhh-im-provider.json`：`id`（发布后不能改）、`name`、`publisher`、`source`（换成你的仓库）。
@@ -50,14 +50,19 @@ powershell -File scripts/pack-ios.ps1   # Windows
 | 添加 IM → 分享码 | 在支持分享码的 HHH 中，粘贴拥有者提供的分享码，安装和更新私有插件 |
 | 卡片「管理 → 从文件更新」 | 已经装过，换成新打的包或文件夹 |
 
-## 发版本
+## 自动检查与发版本
 
-1. 改清单与 `Cargo.toml` 的 `version`，写 `notes.md`（更新说明，Markdown）。
-2. 提交，打标签 `v<版本>` 推上去。
-3. 令牌放环境变量 `HHH_IM_PUBLISH_TOKEN`，跑 `scripts/pack.ps1 -Publish`（或 `scripts/pack.sh --publish`）；iPhone / iPad 的包再跑一次
-   `scripts/pack-ios.sh --publish`（或 `pack-ios.ps1 -Publish`），同一版本的索引会合并。
+仓库带一套统一工作流：`.github/workflows/hhh-plugin.yml` 与 `.github/hhh-ci/`（不要在你的仓库里改，要更新就从本模板复制新版）。要出哪些系统写在 `.github/hhh-plugin.json` 的 `targets`，清单 `os` 要写了对应系统。
 
-用户打开 HHH 的设置 → IM 时会看到“有新版本”，点一下就更新。详细规矩见 [hhh-im-sdk 的发版本规范](https://github.com/MagicLizi/hhh-im-sdk/blob/main/docs/release.md)。
+- **自动检查**：提 PR、推 main 时，把每个系统都编一遍，跑测试与 `hhh-im-check`，并试着合一次包。
+- **发版本**：
+  1. 改清单与 `Cargo.toml` 的 `version`，在 `notes.md` 最上面写一节 `### <版本>`（给用户看的更新说明），合进 main。
+  2. GitHub → Actions → **hhh-plugin** → Run workflow，「发布请求编号」随便填（比如版本号）→ Run。它在 main 上编全部系统、合成一份版本索引，建一个**草稿** Release（HHH 不读草稿，用户看不到）。版本没往上加、这一版已经发过、没写这一版的说明时，编译前就停下。
+  3. 到仓库的 Releases 页看草稿：每个系统的 `.hhhim` 与 `hhhim-release.json` 都在，点 **Publish release**。用户打开 HHH 的设置 → IM 时会看到“有新版本”，点一下就更新。
+
+不用 CI 也可以在自己电脑上发：令牌放环境变量 `HHH_IM_PUBLISH_TOKEN`，跑 `scripts/pack.ps1 -Publish`（或 `scripts/pack.sh --publish`）；iPhone / iPad 的包再跑一次 `scripts/pack-ios.sh --publish`（或 `pack-ios.ps1 -Publish`），同一版本的索引会合并。
+
+详细规矩见 [hhh-im-sdk 的发版本规范](https://github.com/MagicLizi/hhh-im-sdk/blob/main/docs/release.md)。
 
 ### 分享私有插件
 
@@ -66,7 +71,7 @@ powershell -File scripts/pack-ios.ps1   # Windows
 - GitHub：单独建一个只放安装包与版本索引的发布仓库，清单 `source` 指向它；分享用的细粒度令牌只选这一个仓库、Contents 只读。HHH 会引导生成，不能把发布令牌发给朋友。
 - GitLab：新版打包工具发布时同时更新包仓库的最新版本索引，HHH 创建只读包仓库的部署令牌。旧工具发布的版本可用 `hhh-im-pack dist/stage --publish --latest-only` 只补索引，`dist/stage` 的清单版本必须与已发布版本相同。
 
-本页的 `--latest-only` 需要包含该选项的新版打包工具；上面的固定 SDK 版本不会自动升级。使用已核对的新版本工具后，再按发版本规范发布。
+本页的 `--latest-only` 需要包含该选项的新版打包工具（hhh-im-sdk v0.10.0 起都有）。
 
 ## 给 agent 的规范
 
