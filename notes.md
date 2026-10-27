@@ -1,3 +1,10 @@
+### 0.4.1
+
+- 新增 Mac 版（M 芯片与 Intel 芯片）、Linux 版，以及 iPhone / iPad 用的安装包。
+- Windows 上 HHH 启动插件时不再弹出控制台窗口。
+- 示例代码改用 hhh-im-sdk 的插件运行时写，用起来和以前一样。
+- 需要带 IM SDK 0.10.0 或更新版本的 HHH。
+
 ### 0.4.0
 
 - 多了 iPhone / iPad 用的安装包：在 HHH 的 iOS 版上装法与桌面一样。
