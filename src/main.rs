@@ -24,6 +24,7 @@ use hhh_im_protocol::types::{
     Block, Conversation, ConversationKind, Event, Message, SendOutcome, Sender, SenderKind,
 };
 use hhh_im_protocol::{ErrorKind, RpcError};
+mod media;
 use serde_json::{Value, json};
 
 /// 示例群的会话编号。
@@ -96,13 +97,16 @@ impl Demo {
             BOT,
             "示例机器人",
             SenderKind::Bot,
-            &format!("你好，这是示例 IM {}。在这里发一句话试试。", env!("CARGO_PKG_VERSION")),
+            &format!(
+                "你好，这是示例 IM {}。在这里发一句话试试。",
+                env!("CARGO_PKG_VERSION")
+            ),
         );
         self.push(vec![
             Event::Conversation { conversation: chat },
             Event::Messages {
                 conversation_id: DEMO_CHAT.into(),
-                messages: vec![hello],
+                messages: vec![hello, media::message(DEMO_CHAT, BOT, now_ms())],
             },
         ])
         .await;
@@ -122,7 +126,7 @@ impl Demo {
                 "conversations": { "list": false },
                 "messages": { "list": false, "get": false },
                 "events": { "messages": true, "conversations": true, "people": false },
-                "resources": { "read": false, "avatars": false }
+                "resources": { "read": true, "avatars": false, "variants": true }
             },
             "settings": []
         })
@@ -143,6 +147,8 @@ impl Plugin for Demo {
                 Reply::Responded
             }
             "ping" | "session/logout" | "shutdown" => Reply::from(Ok(json!({}))),
+            "resources/describe" => Reply::from(media::describe(call.params)),
+            "resources/read" => Reply::from(media::read(call.params)),
             "messages/send" => {
                 let text = call
                     .params
@@ -150,12 +156,26 @@ impl Plugin for Demo {
                     .and_then(Value::as_str)
                     .unwrap_or("")
                     .to_owned();
-                let sent = text_message(format!("sent-{}", now_ms()), ME, "示例账号", SenderKind::User, &text);
-                let accepted = serde_json::to_value(SendOutcome::Accepted { message: Box::new(sent) })
-                    .map_err(|_| RpcError::from_kind(ErrorKind::ProtocolError, "发送结果写不出"));
+                let sent = text_message(
+                    format!("sent-{}", now_ms()),
+                    ME,
+                    "示例账号",
+                    SenderKind::User,
+                    &text,
+                );
+                let accepted = serde_json::to_value(SendOutcome::Accepted {
+                    message: Box::new(sent),
+                })
+                .map_err(|_| RpcError::from_kind(ErrorKind::ProtocolError, "发送结果写不出"));
                 call.host.respond(call.id, accepted);
                 // 回过“发出去了”，示例机器人再回一句。
-                let reply = text_message(format!("reply-{}", now_ms()), BOT, "示例机器人", SenderKind::Bot, &format!("收到「{text}」"));
+                let reply = text_message(
+                    format!("reply-{}", now_ms()),
+                    BOT,
+                    "示例机器人",
+                    SenderKind::Bot,
+                    &format!("收到「{text}」"),
+                );
                 self.push(vec![Event::Messages {
                     conversation_id: DEMO_CHAT.into(),
                     messages: vec![reply],
@@ -172,7 +192,10 @@ impl Plugin for Demo {
 }
 
 fn main() {
-    let runtime = match tokio::runtime::Builder::new_current_thread().enable_all().build() {
+    let runtime = match tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+    {
         Ok(runtime) => runtime,
         Err(error) => {
             eprintln!("示例 IM 的运行时建不起来：{error}");

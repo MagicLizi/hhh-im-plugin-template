@@ -11,7 +11,7 @@ HHH 的 IM 层只做统一的界面和一个统一的插座（HHH-IM-Protocol）
 2. 装工具（自检与打包）：
 
    ```sh
-   cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.10.0 hhh-im-protocol --features transport,package
+   cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.14.0 hhh-im-protocol --features transport,package
    ```
 
 3. 改清单 `hhh-im-provider.json`：`id`（发布后不能改）、`name`、`publisher`、`source`（换成你的仓库）。
@@ -71,7 +71,7 @@ powershell -File scripts/pack-ios.ps1   # Windows
 - GitHub：单独建一个只放安装包与版本索引的发布仓库，清单 `source` 指向它；分享用的细粒度令牌只选这一个仓库、Contents 只读。HHH 会引导生成，不能把发布令牌发给朋友。
 - GitLab：新版打包工具发布时同时更新包仓库的最新版本索引，HHH 创建只读包仓库的部署令牌。旧工具发布的版本可用 `hhh-im-pack dist/stage --publish --latest-only` 只补索引，`dist/stage` 的清单版本必须与已发布版本相同。
 
-本页的 `--latest-only` 需要包含该选项的新版打包工具（hhh-im-sdk v0.10.0 起都有）。
+本页的 `--latest-only` 需要包含该选项的新版打包工具（hhh-im-sdk v0.14.0 起都有）。
 
 ## 给 agent 的规范
 
@@ -88,3 +88,9 @@ powershell -File scripts/pack-ios.ps1   # Windows
 ## 许可证
 
 [MIT](LICENSE)。用这个模板起的插件，许可证由你自己定（改掉 `LICENSE` 与 `Cargo.toml` 的 `license`）。
+
+## 图片的预览与原件
+
+示例消息演示预览与原件分开、共用同一份图片、只有预览三种情况；资源分段用运行时 chunk_of_bytes。
+
+新宿主经 `resources/describe` 选择实际版本，读取时带 `variant`；省略 `variant` 的旧调用仍按原来的方式读取；二进制安装仍需通过宿主的最低 SDK 检查。分段缓存包含实际版本，不把预览当成原件。本版固定使用 IM SDK v0.14.0，宿主需支持该版 SDK。
