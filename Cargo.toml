@@ -8,7 +8,7 @@ description = "示例 IM：HHH IM 插件的最小可用骨架"
 
 [dependencies]
 # 协议包：线上类型与插件运行时（协议服务、日志、资源分段、上传、请求计数；按标签取一个固定版本）。
-hhh-im-protocol = { git = "https://github.com/MagicLizi/hhh-im-sdk", tag = "v0.14.0", features = ["runtime"] }
+hhh-im-protocol = { git = "https://github.com/MagicLizi/hhh-im-sdk", tag = "v0.16.0", features = ["runtime"] }
 serde_json = "1"
 # tokio：插件运行时在它上面跑（并发处理宿主的请求；标准输入输出由运行时按目标接好，iPhone / iPad 的 WASM 包也一样）。
 tokio = { version = "1", default-features = false, features = ["rt", "macros"] }

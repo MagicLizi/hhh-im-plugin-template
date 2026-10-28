@@ -11,7 +11,7 @@ HHH 的 IM 层只做统一的界面和一个统一的插座（HHH-IM-Protocol）
 2. 装工具（自检与打包）：
 
    ```sh
-   cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.14.0 hhh-im-protocol --features transport,package
+   cargo install --git https://github.com/MagicLizi/hhh-im-sdk --tag v0.16.0 hhh-im-protocol --features transport,package
    ```
 
 3. 改清单 `hhh-im-provider.json`：`id`（发布后不能改）、`name`、`publisher`、`source`（换成你的仓库）。
@@ -93,4 +93,8 @@ powershell -File scripts/pack-ios.ps1   # Windows
 
 示例消息演示预览与原件分开、共用同一份图片、只有预览三种情况；资源分段用运行时 chunk_of_bytes。
 
-新宿主经 `resources/describe` 选择实际版本，读取时带 `variant`；省略 `variant` 的旧调用仍按原来的方式读取；二进制安装仍需通过宿主的最低 SDK 检查。分段缓存包含实际版本，不把预览当成原件。本版固定使用 IM SDK v0.14.0，宿主需支持该版 SDK。
+新宿主经 `resources/describe` 选择实际版本，读取时带 `variant`；省略 `variant` 的旧调用仍按原来的方式读取；二进制安装仍需通过宿主的最低 SDK 检查。分段缓存包含实际版本，不把预览当成原件。本版固定使用 IM SDK v0.16.0，宿主需支持该版 SDK。
+
+## 合并转发记录
+
+示例群包含三种转发记录：60 条的完整记录（文字、图片、可下载的 `记录说明.md` 和嵌套记录）、部分可读记录，以及平台未提供正文的记录。点击预览后由宿主的同一个居中阅读器展示。`src/forwarded.rs` 演示外层消息内唯一资源键及按消息和种类验证下载归属；内部编号不作为当前会话消息上报。新样例需要支持 `forwarded` 内容块的宿主，普通示例与新样例统一固定使用公开 IM SDK `v0.16.0`。
