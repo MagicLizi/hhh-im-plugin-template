@@ -24,6 +24,7 @@ use hhh_im_protocol::types::{
     Block, Conversation, ConversationKind, Event, Message, SendOutcome, Sender, SenderKind,
 };
 use hhh_im_protocol::{ErrorKind, RpcError};
+mod forwarded;
 mod media;
 use serde_json::{Value, json};
 
@@ -49,6 +50,7 @@ fn now_ms() -> i64 {
 
 fn text_message(id: String, from: &str, name: &str, kind: SenderKind, text: &str) -> Message {
     Message {
+        read_position: None,
         id,
         conversation_id: DEMO_CHAT.into(),
         sender: Sender {
@@ -74,7 +76,7 @@ fn text_message(id: String, from: &str, name: &str, kind: SenderKind, text: &str
 
 impl Demo {
     /// 推一批事件给宿主（`events/push`），带上同步游标，等宿主落库后回复。
-    async fn push(&self, events: Vec<Event>) {
+    async fn push(&self, events: Value) {
         let batch = self.batches.fetch_add(1, Ordering::SeqCst) + 1;
         let params = json!({ "events": events, "syncState": batch.to_string() });
         if let Err(error) = self.host.request("events/push", params).await {
@@ -102,13 +104,15 @@ impl Demo {
                 env!("CARGO_PKG_VERSION")
             ),
         );
-        self.push(vec![
-            Event::Conversation { conversation: chat },
-            Event::Messages {
-                conversation_id: DEMO_CHAT.into(),
-                messages: vec![hello, media::message(DEMO_CHAT, BOT, now_ms())],
-            },
-        ])
+        let mut messages = vec![
+            json!(hello),
+            json!(media::message(DEMO_CHAT, BOT, now_ms())),
+        ];
+        messages.extend(forwarded::messages(DEMO_CHAT, BOT, now_ms()));
+        self.push(json!([
+            {"type":"conversation","conversation":chat},
+            {"type":"messages","conversationId":DEMO_CHAT,"messages":messages}
+        ]))
         .await;
     }
 
@@ -124,7 +128,7 @@ impl Demo {
             },
             "capabilities": {
                 "conversations": { "list": false },
-                "messages": { "list": false, "get": false },
+                "messages": { "list": false, "get": false, "forwarded": true },
                 "events": { "messages": true, "conversations": true, "people": false },
                 "resources": { "read": true, "avatars": false, "variants": true }
             },
@@ -147,8 +151,26 @@ impl Plugin for Demo {
                 Reply::Responded
             }
             "ping" | "session/logout" | "shutdown" => Reply::from(Ok(json!({}))),
-            "resources/describe" => Reply::from(media::describe(call.params)),
-            "resources/read" => Reply::from(media::read(call.params)),
+            "resources/describe" => Reply::from(
+                if call.params["messageId"]
+                    .as_str()
+                    .is_some_and(|id| id.starts_with("forwarded-"))
+                {
+                    forwarded::describe(call.params)
+                } else {
+                    media::describe(call.params)
+                },
+            ),
+            "resources/read" => Reply::from(
+                if call.params["messageId"]
+                    .as_str()
+                    .is_some_and(|id| id.starts_with("forwarded-"))
+                {
+                    forwarded::read(call.params)
+                } else {
+                    media::read(call.params)
+                },
+            ),
             "messages/send" => {
                 let text = call
                     .params
@@ -176,10 +198,10 @@ impl Plugin for Demo {
                     SenderKind::Bot,
                     &format!("收到「{text}」"),
                 );
-                self.push(vec![Event::Messages {
+                self.push(json!([Event::Messages {
                     conversation_id: DEMO_CHAT.into(),
                     messages: vec![reply],
-                }])
+                }]))
                 .await;
                 Reply::Responded
             }
