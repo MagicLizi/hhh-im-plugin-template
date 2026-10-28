@@ -107,6 +107,7 @@ impl Demo {
         let mut messages = vec![
             json!(hello),
             json!(media::message(DEMO_CHAT, BOT, now_ms())),
+            json!(media::audio_message(DEMO_CHAT, BOT, now_ms())),
         ];
         messages.extend(forwarded::messages(DEMO_CHAT, BOT, now_ms()));
         self.push(json!([
