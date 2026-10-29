@@ -61,7 +61,7 @@ dependencies = [
 
 [[package]]
 name = "demo-im"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "hhh-im-protocol",
  "serde_json",

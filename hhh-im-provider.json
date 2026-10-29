@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "demo-im",
   "name": "示例 IM",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "command": "demo-im",
   "os": ["windows", "macos", "linux", "ios"],
   "logo": "logo.svg",
