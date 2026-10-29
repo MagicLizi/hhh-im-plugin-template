@@ -6,7 +6,8 @@
 //! `$/cancel`、向宿主发请求并等回复、tracing 日志转成 `log/write`、资源分段读、上传攒齐与核对、平台请求计数。插件
 //! 只写“收到某个方法怎么办”。这个示例：
 //! - `initialize`：报协议版本、插件信息、平台说明与能力（只推一次的平台：`history = none`，消息全靠推送）；
-//! - `session/open`：不用登录，直接在线，账号是“示例账号”；在线后推一个“示例群”和一条欢迎消息；
+//! - `session/open`：不用登录，直接在线，账号是“示例账号”；在线后推一个“示例群”、一条欢迎消息与图片、音频、视频、
+//!   聊天记录示例（设了环境变量 `DEMO_IM_SIGNED_OUT` 时回“需要登录”，演示账号没连接）；
 //! - `messages/send`：你在 HHH 里发的消息照收，再以“示例机器人”引用原话回一句“收到「…」”；
 //! - 别的方法回“不支持”。
 //!
@@ -26,6 +27,7 @@ use hhh_im_protocol::types::{
 use hhh_im_protocol::{ErrorKind, RpcError};
 mod forwarded;
 mod media;
+mod video;
 use serde_json::{Value, json};
 
 /// 示例群的会话编号。
@@ -110,6 +112,11 @@ impl Demo {
             json!(media::audio_message(DEMO_CHAT, BOT, now_ms())),
         ];
         messages.extend(forwarded::messages(DEMO_CHAT, BOT, now_ms()));
+        messages.extend(
+            video::messages(DEMO_CHAT, BOT, now_ms())
+                .into_iter()
+                .map(|m| json!(m)),
+        );
         self.push(json!([
             {"type":"conversation","conversation":chat},
             {"type":"messages","conversationId":DEMO_CHAT,"messages":messages}
@@ -119,7 +126,7 @@ impl Demo {
 
     /// 平台说明与能力。
     fn initialize() -> Value {
-        json!({
+        let mut answer = json!({
             "protocolVersion": 1,
             "provider": { "id": "demo-im", "name": "示例 IM", "version": env!("CARGO_PKG_VERSION") },
             "platform": {
@@ -134,7 +141,13 @@ impl Demo {
                 "resources": { "read": true, "avatars": false, "variants": true }
             },
             "settings": []
-        })
+        });
+        // 文件按 256 KB 一段读：宿主能从任意位置读（视频拖进度、索引在末尾时直接读那一段）、断了接着下。
+        // 设了环境变量 DEMO_IM_SEQUENTIAL 时不声明，演示只能从头顺着读的平台（宿主等整份下完再给远处的字节）。
+        if std::env::var_os("DEMO_IM_SEQUENTIAL").is_none() {
+            answer["platform"]["fileSegmentBytes"] = video::SEGMENT_BYTES.into();
+        }
+        answer
     }
 }
 
@@ -142,6 +155,12 @@ impl Plugin for Demo {
     async fn request(self: Arc<Self>, call: Call) -> Reply {
         match call.method.as_str() {
             "initialize" => Reply::from(Ok(Demo::initialize())),
+            // 设了环境变量 DEMO_IM_SIGNED_OUT 时回“需要登录（没有凭据）”，演示账号没连接（宿主只读显示本机已有的消息）。
+            "session/open" if std::env::var_os("DEMO_IM_SIGNED_OUT").is_some() => {
+                Reply::from(Ok(json!({
+                    "state": "needsLogin", "reason": "noCredential", "message": "示例账号没登录（DEMO_IM_SIGNED_OUT）"
+                })))
+            }
             // 先回“在线”，再推示例群：宿主收到推送时这个会话已经在线了。
             "session/open" => {
                 call.host.respond(
@@ -158,6 +177,11 @@ impl Plugin for Demo {
                     .is_some_and(|id| id.starts_with("forwarded-"))
                 {
                     forwarded::describe(call.params)
+                } else if call.params["messageId"]
+                    .as_str()
+                    .is_some_and(|id| id.starts_with(video::PREFIX))
+                {
+                    video::describe(call.params)
                 } else {
                     media::describe(call.params)
                 },
@@ -168,6 +192,11 @@ impl Plugin for Demo {
                     .is_some_and(|id| id.starts_with("forwarded-"))
                 {
                     forwarded::read(call.params)
+                } else if call.params["messageId"]
+                    .as_str()
+                    .is_some_and(|id| id.starts_with(video::PREFIX))
+                {
+                    video::read(call.params).await
                 } else {
                     media::read(call.params)
                 },
